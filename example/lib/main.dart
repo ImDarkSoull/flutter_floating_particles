@@ -6,6 +6,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -21,8 +23,10 @@ class MyApp extends StatelessWidget {
 }
 
 class ParticleDemo extends StatefulWidget {
+  const ParticleDemo({super.key});
+
   @override
-  _ParticleDemoState createState() => _ParticleDemoState();
+  State<ParticleDemo> createState() => _ParticleDemoState();
 }
 
 class _ParticleDemoState extends State<ParticleDemo> {
@@ -31,173 +35,194 @@ class _ParticleDemoState extends State<ParticleDemo> {
   String currentEffectName = 'Snow';
 
   final List<EffectOption> effectOptions = [
-    EffectOption('Snow', ParticleConfig(
-      particleType: ParticleType.circle,
-      direction: ParticleDirection.topToBottom,
-      particleCoverage: ParticleCoverage.half,
-      particleCount: 70,
-      minSize: 2.0,
-      maxSize: 8.0,
-      particleColor: Colors.white,
-      enableGlow: true,
-      glowRadius: 1.5,
-      velocityMultiplier: 0.8,
-      animationDuration: Duration(seconds: 15),
-      minOpacity: 0.6,
-      maxOpacity: 1.0,
-    )),
-    EffectOption('Rain', ParticleConfig(
-      particleType: ParticleType.circle,
-      direction: ParticleDirection.topToBottom,
-      particleCoverage: ParticleCoverage.quarter,
-      particleCount: 100,
-      minSize: 1.0,
-      maxSize: 3.0,
-      particleColor: Color(0xFF4A90E2),
-      velocityMultiplier: 0.8,
-      animationDuration: Duration(seconds: 10),
-      minOpacity: 0.4,
-      maxOpacity: 0.8,
-      enableBlur: true,
-      blurSigma: 0.3,
-    )),
-    EffectOption('Fire Ashes', ParticleConfig(
-      particleType: ParticleType.circle,
-      direction: ParticleDirection.topToBottom, // Changed to falling
-      particleCoverage: ParticleCoverage.semiFull,
-      particleCount: 60,
-      minSize: 1.0,
-      maxSize: 4.0,
-      particleColor: Colors.grey,
-      enableGlow: false,
-      glowRadius: 6.0,
-      velocityMultiplier: 0.4, // Slower falling
-      animationDuration: Duration(seconds: 18),
-      minOpacity: 0.4,
-      maxOpacity: 1.0,
-    )),
-    EffectOption('Bubbles', ParticleConfig(
-      particleType: ParticleType.image,
-      direction: ParticleDirection.topToBottom, // Changed to falling
-      particleCoverage: ParticleCoverage.semiHalf,
-      particleCount: 40,
-      minSize: 4.0,
+    EffectOption(
+      'Snow',
+      ParticleConfig(
+        particleType: ParticleType.circle,
+        direction: ParticleDirection.topToBottom,
+        particleCoverage: ParticleCoverage.half,
+        particleCount: 70,
+        minSize: 2.0,
+        maxSize: 8.0,
+        particleColor: Colors.white,
+        enableGlow: true,
+        glowRadius: 1.5,
+        velocityMultiplier: 0.8,
+        animationDuration: Duration(seconds: 15),
+        minOpacity: 0.6,
+        maxOpacity: 1.0,
+      ),
+    ),
+    EffectOption(
+      'Rain',
+      ParticleConfig(
+        particleType: ParticleType.circle,
+        direction: ParticleDirection.topToBottom,
+        particleCoverage: ParticleCoverage.quarter,
+        particleCount: 100,
+        minSize: 1.0,
+        maxSize: 3.0,
+        particleColor: Color(0xFF4A90E2),
+        velocityMultiplier: 0.8,
+        animationDuration: Duration(seconds: 10),
+        minOpacity: 0.4,
+        maxOpacity: 0.8,
+        enableBlur: true,
+        blurSigma: 0.3,
+      ),
+    ),
+    EffectOption(
+      'Fire Ashes',
+      ParticleConfig(
+        particleType: ParticleType.circle,
+        direction: ParticleDirection.topToBottom, // Changed to falling
+        particleCoverage: ParticleCoverage.semiFull,
+        particleCount: 60,
+        minSize: 1.0,
+        maxSize: 4.0,
+        particleColor: Colors.grey,
+        enableGlow: false,
+        glowRadius: 6.0,
+        velocityMultiplier: 0.4, // Slower falling
+        animationDuration: Duration(seconds: 18),
+        minOpacity: 0.4,
+        maxOpacity: 1.0,
+      ),
+    ),
+    EffectOption(
+      'Bubbles',
+      ParticleConfig(
+        particleType: ParticleType.image,
+        direction: ParticleDirection.topToBottom, // Changed to falling
+        particleCoverage: ParticleCoverage.semiHalf,
+        particleCount: 40,
+        minSize: 4.0,
 
-      maxSize: 20.0,
-      particleColor: Colors.black,
-      minOpacity: 0.2,
-      maxOpacity: 0.7,
-      enableGlow: true,
-      glowRadius: 2.0,
-      velocityMultiplier: 0.3, // Very slow falling
-      animationDuration: Duration(seconds: 25),
-      enableBlur: true,
-      blurSigma: 0.5,
-    )),
-    EffectOption('Stars', ParticleConfig(
-      particleType: ParticleType.star,
-      direction: ParticleDirection.topToBottom, // Changed to falling
-      particleCount: 40,
-      minSize: 3.0,
-      maxSize: 10.0,
-      gradientColors: [
-        Colors.white,
-        Colors.yellow,
-        Colors.lightBlue,
-      ],
-      enableGlow: false,
-      glowRadius: 5.0,
-      enableRotation: true,
-      velocityMultiplier: 0.3,
-      animationDuration: Duration(seconds: 25),
-      minOpacity: 0.5,
-      maxOpacity: 1.0,
-    )),
-    EffectOption('Hearts', ParticleConfig(
-      particleType: ParticleType.heart,
-      direction: ParticleDirection.topToBottom, // Changed to falling
-      particleCount: 25,
-      minSize: 6.0,
-      maxSize: 16.0,
-      gradientColors: [
-        Colors.pink,
-        Colors.red,
-        Colors.pinkAccent,
-      ],
-      enableGlow: true,
-      glowRadius: 1.5,
-      velocityMultiplier: 0.4,
-      animationDuration: Duration(seconds: 20),
-      minOpacity: 0.6,
-      maxOpacity: 0.9,
-    )),
-    EffectOption('Confetti', ParticleConfig(
-      particleType: ParticleType.square,
-      direction: ParticleDirection.topToBottom, // Already falling
-      particleCount: 80,
-      minSize: 4.0,
-      maxSize: 8.0,
-      gradientColors: [
-        Colors.red,
-        Colors.blue,
-        Colors.green,
-        Colors.yellow,
-        Colors.purple,
-        Colors.orange,
-      ],
-      enableRotation: true,
-      velocityMultiplier: 1.2,
-      animationDuration: Duration(seconds: 10),
-      minOpacity: 0.8,
-      maxOpacity: 1.0,
-    )),
-    EffectOption('Falling Leaves', ParticleConfig(
-      particleType: ParticleType.star,
-      direction: ParticleDirection.topToBottom, // Already falling
-      particleCount: 30,
-      minSize: 8.0,
-      maxSize: 15.0,
-      gradientColors: [
-        Colors.orange,
-        Colors.red,
-        Colors.brown,
-        Colors.yellow,
-      ],
-      enableRotation: true,
-      velocityMultiplier: 0.6,
-      animationDuration: Duration(seconds: 20),
-      minOpacity: 0.7,
-      maxOpacity: 1.0,
-    )),
-    EffectOption('Flutter Image', ParticleConfig(
-      particleType: ParticleType.image,
-      direction: ParticleDirection.topToBottom, // Already falling
-      particleCount: 30,
-      imagePath: "assets/icon_flutter.png",
-      minSize: 8.0,
-      maxSize: 20.0,
-      enableRotation: true,
-      enableSizeVariation:false,
-      velocityMultiplier: 0.6,
-      animationDuration: Duration(seconds: 20),
-      minOpacity: 0.7,
-      maxOpacity: 1.0,
-    )),
-    EffectOption('Custom Widget', ParticleConfig(
-      particleType: ParticleType.custom,
-      direction: ParticleDirection.topToBottom, // Already falling
-      particleCount: 30,
-      customParticle: Text("Flutter"),
-      minSize: 8.0,
-      maxSize: 150.0,
-      enableRotation: true,
-      velocityMultiplier: 0.6,
-      animationDuration: Duration(seconds: 20),
-      minOpacity: 0.7,
-      maxOpacity: 1.0,
-    )),
+        maxSize: 20.0,
+        particleColor: Colors.black,
+        minOpacity: 0.2,
+        maxOpacity: 0.7,
+        enableGlow: true,
+        glowRadius: 2.0,
+        velocityMultiplier: 0.3, // Very slow falling
+        animationDuration: Duration(seconds: 25),
+        enableBlur: true,
+        blurSigma: 0.5,
+      ),
+    ),
+    EffectOption(
+      'Stars',
+      ParticleConfig(
+        particleType: ParticleType.star,
+        direction: ParticleDirection.topToBottom, // Changed to falling
+        particleCount: 40,
+        minSize: 3.0,
+        maxSize: 10.0,
+        gradientColors: [Colors.white, Colors.yellow, Colors.lightBlue],
+        enableGlow: false,
+        glowRadius: 5.0,
+        enableRotation: true,
+        velocityMultiplier: 0.3,
+        animationDuration: Duration(seconds: 25),
+        minOpacity: 0.5,
+        maxOpacity: 1.0,
+      ),
+    ),
+    EffectOption(
+      'Hearts',
+      ParticleConfig(
+        particleType: ParticleType.heart,
+        direction: ParticleDirection.topToBottom, // Changed to falling
+        particleCount: 25,
+        minSize: 6.0,
+        maxSize: 16.0,
+        gradientColors: [Colors.pink, Colors.red, Colors.pinkAccent],
+        enableGlow: true,
+        glowRadius: 1.5,
+        velocityMultiplier: 0.4,
+        animationDuration: Duration(seconds: 20),
+        minOpacity: 0.6,
+        maxOpacity: 0.9,
+      ),
+    ),
+    EffectOption(
+      'Confetti',
+      ParticleConfig(
+        particleType: ParticleType.square,
+        direction: ParticleDirection.topToBottom, // Already falling
+        particleCount: 80,
+        minSize: 4.0,
+        maxSize: 8.0,
+        gradientColors: [
+          Colors.red,
+          Colors.blue,
+          Colors.green,
+          Colors.yellow,
+          Colors.purple,
+          Colors.orange,
+        ],
+        enableRotation: true,
+        velocityMultiplier: 1.2,
+        animationDuration: Duration(seconds: 10),
+        minOpacity: 0.8,
+        maxOpacity: 1.0,
+      ),
+    ),
+    EffectOption(
+      'Falling Leaves',
+      ParticleConfig(
+        particleType: ParticleType.star,
+        direction: ParticleDirection.topToBottom, // Already falling
+        particleCount: 30,
+        minSize: 8.0,
+        maxSize: 15.0,
+        gradientColors: [
+          Colors.orange,
+          Colors.red,
+          Colors.brown,
+          Colors.yellow,
+        ],
+        enableRotation: true,
+        velocityMultiplier: 0.6,
+        animationDuration: Duration(seconds: 20),
+        minOpacity: 0.7,
+        maxOpacity: 1.0,
+      ),
+    ),
+    EffectOption(
+      'Flutter Image',
+      ParticleConfig(
+        particleType: ParticleType.image,
+        direction: ParticleDirection.topToBottom, // Already falling
+        particleCount: 30,
+        imagePath: "assets/icon_flutter.png",
+        minSize: 8.0,
+        maxSize: 20.0,
+        enableRotation: true,
+        enableSizeVariation: false,
+        velocityMultiplier: 0.6,
+        animationDuration: Duration(seconds: 20),
+        minOpacity: 0.7,
+        maxOpacity: 1.0,
+      ),
+    ),
+    EffectOption(
+      'Custom Widget',
+      ParticleConfig(
+        particleType: ParticleType.custom,
+        direction: ParticleDirection.topToBottom, // Already falling
+        particleCount: 30,
+        customParticle: Text("Flutter"),
+        minSize: 8.0,
+        maxSize: 150.0,
+        enableRotation: true,
+        velocityMultiplier: 0.6,
+        animationDuration: Duration(seconds: 20),
+        minOpacity: 0.7,
+        maxOpacity: 1.0,
+      ),
+    ),
   ];
-
 
   @override
   Widget build(BuildContext context) {
@@ -234,10 +259,7 @@ class _ParticleDemoState extends State<ParticleDemo> {
                       SizedBox(height: 8),
                       Text(
                         'Currently showing: $currentEffectName',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                     ],
                   ),
@@ -261,7 +283,7 @@ class _ParticleDemoState extends State<ParticleDemo> {
                             isEnabled = value;
                           });
                         },
-                        activeColor: Colors.blue,
+                        activeThumbColor: Colors.blue,
                       ),
                     ],
                   ),
@@ -294,7 +316,7 @@ class _ParticleDemoState extends State<ParticleDemo> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isSelected
                               ? Colors.blue
-                              : Colors.white.withOpacity(0.2),
+                              : Colors.white.withValues(alpha: 0.2),
                           foregroundColor: Colors.white,
                           elevation: isSelected ? 8 : 2,
                           shape: RoundedRectangleBorder(
@@ -302,7 +324,7 @@ class _ParticleDemoState extends State<ParticleDemo> {
                             side: BorderSide(
                               color: isSelected
                                   ? Colors.blue
-                                  : Colors.white.withOpacity(0.3),
+                                  : Colors.white.withValues(alpha: 0.3),
                               width: 1,
                             ),
                           ),
@@ -362,4 +384,3 @@ class EffectOption {
 
   EffectOption(this.name, this.config);
 }
-

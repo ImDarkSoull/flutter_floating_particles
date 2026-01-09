@@ -33,13 +33,13 @@ class ParticleEffects extends StatefulWidget {
   final Widget? loadingWidget;
 
   const ParticleEffects({
-    Key? key,
+    super.key,
     required this.child,
     this.config = const ParticleConfig(),
     this.isEnabled = true,
     this.onAnimationComplete,
     this.loadingWidget,
-  }) : super(key: key);
+  });
 
   @override
   State<ParticleEffects> createState() => _ParticleEffectsState();
@@ -47,7 +47,9 @@ class ParticleEffects extends StatefulWidget {
   /// Preloads particle images to ensure smooth animation
   /// Call this method early in your app to preload images
   static Future<void> preloadImages(List<String> imagePaths) async {
-    final futures = imagePaths.map((path) => ParticlePainter.preloadImage(path));
+    final futures = imagePaths.map(
+      (path) => ParticlePainter.preloadImage(path),
+    );
     await Future.wait(futures);
   }
 
@@ -58,8 +60,13 @@ class ParticleEffects extends StatefulWidget {
 
   /// Preloads custom widgets for particle effects
   /// Call this method early in your app to preload custom widgets
-  static Future<void> preloadCustomWidgets(List<Widget> widgets, double size) async {
-    final futures = widgets.map((widget) => ParticlePainter.preloadCustomWidget(widget, size));
+  static Future<void> preloadCustomWidgets(
+    List<Widget> widgets,
+    double size,
+  ) async {
+    final futures = widgets.map(
+      (widget) => ParticlePainter.preloadCustomWidget(widget, size),
+    );
     await Future.wait(futures);
   }
 
@@ -78,7 +85,7 @@ class _ParticleEffectsState extends State<ParticleEffects>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
-  List<ParticleData> _particles = [];
+  final List<ParticleData> _particles = [];
   bool _isInitialized = false;
   bool _isImageLoading = false;
   late DateTime _startTime;
@@ -122,7 +129,10 @@ class _ParticleEffectsState extends State<ParticleEffects>
             widget.config.customParticle != null) {
           // Preload widget with average particle size
           final avgSize = (widget.config.minSize + widget.config.maxSize) / 2;
-          await ParticlePainter.preloadCustomWidget(widget.config.customParticle!, avgSize);
+          await ParticlePainter.preloadCustomWidget(
+            widget.config.customParticle!,
+            avgSize,
+          );
         }
       } catch (e) {
         debugPrint('Error preloading particle resources: $e');
@@ -149,10 +159,7 @@ class _ParticleEffectsState extends State<ParticleEffects>
     );
 
     _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.linear,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.linear),
     );
 
     if (widget.isEnabled) {
@@ -178,13 +185,15 @@ class _ParticleEffectsState extends State<ParticleEffects>
 
     if (oldWidget.config.particleType != widget.config.particleType ||
         oldWidget.config.imagePath != widget.config.imagePath) {
-      needsImageReload = widget.config.particleType == ParticleType.image &&
+      needsImageReload =
+          widget.config.particleType == ParticleType.image &&
           widget.config.imagePath != null;
     }
 
     if (oldWidget.config.particleType != widget.config.particleType ||
         oldWidget.config.customParticle != widget.config.customParticle) {
-      needsWidgetReload = widget.config.particleType == ParticleType.custom &&
+      needsWidgetReload =
+          widget.config.particleType == ParticleType.custom &&
           widget.config.customParticle != null;
     }
 
@@ -197,7 +206,8 @@ class _ParticleEffectsState extends State<ParticleEffects>
       }
 
       // Update animation duration if it changed
-      if (oldWidget.config.animationDuration != widget.config.animationDuration) {
+      if (oldWidget.config.animationDuration !=
+          widget.config.animationDuration) {
         _animationController.duration = widget.config.animationDuration;
       }
     }
@@ -228,16 +238,15 @@ class _ParticleEffectsState extends State<ParticleEffects>
         // Show loading indicator if images/widgets are loading
         if (_isImageLoading)
           Positioned.fill(
-            child: widget.loadingWidget ??
+            child:
+                widget.loadingWidget ??
                 Container(
                   color: Colors.transparent,
                   child: const Center(
                     child: SizedBox(
                       width: 24,
                       height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                      ),
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   ),
                 ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_floating_particles/src/models/particle_covrage.dart';
 import '../../flutter_floating_particles.dart';
 
 /// Configuration class that defines how particle effects should behave and appear.
@@ -141,12 +140,7 @@ class ParticleConfig {
     particleCount: 20,
     minSize: 8.0,
     maxSize: 15.0,
-    gradientColors: [
-      Colors.orange,
-      Colors.red,
-      Colors.brown,
-      Colors.yellow,
-    ],
+    gradientColors: [Colors.orange, Colors.red, Colors.brown, Colors.yellow],
     enableRotation: true,
     velocityMultiplier: 0.6,
     animationDuration: Duration(seconds: 20),
@@ -181,11 +175,7 @@ class ParticleConfig {
     particleCount: 40,
     minSize: 3.0,
     maxSize: 10.0,
-    gradientColors: [
-      Colors.white,
-      Colors.yellow,
-      Colors.lightBlue,
-    ],
+    gradientColors: [Colors.white, Colors.yellow, Colors.lightBlue],
     enableGlow: true,
     glowRadius: 5.0,
     enableRotation: true,
@@ -203,11 +193,7 @@ class ParticleConfig {
     particleCount: 15,
     minSize: 6.0,
     maxSize: 16.0,
-    gradientColors: [
-      Colors.pink,
-      Colors.red,
-      Colors.pinkAccent,
-    ],
+    gradientColors: [Colors.pink, Colors.red, Colors.pinkAccent],
     enableGlow: true,
     glowRadius: 4.0,
     velocityMultiplier: 0.5,
@@ -259,28 +245,28 @@ class ParticleConfig {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is ParticleConfig &&
-              runtimeType == other.runtimeType &&
-              particleType == other.particleType &&
-              particleCoverage == other.particleCoverage &&
-              direction == other.direction &&
-              particleCount == other.particleCount &&
-              minSize == other.minSize &&
-              maxSize == other.maxSize &&
-              animationDuration == other.animationDuration &&
-              particleColor == other.particleColor &&
-              imagePath == other.imagePath &&
-              customParticle == other.customParticle &&
-              minOpacity == other.minOpacity &&
-              maxOpacity == other.maxOpacity &&
-              enableGlow == other.enableGlow &&
-              glowRadius == other.glowRadius &&
-              enableRotation == other.enableRotation &&
-              velocityMultiplier == other.velocityMultiplier &&
-              enableSizeVariation == other.enableSizeVariation &&
-              enableOpacityAnimation == other.enableOpacityAnimation &&
-              enableBlur == other.enableBlur &&
-              blurSigma == other.blurSigma;
+      other is ParticleConfig &&
+          runtimeType == other.runtimeType &&
+          particleType == other.particleType &&
+          particleCoverage == other.particleCoverage &&
+          direction == other.direction &&
+          particleCount == other.particleCount &&
+          minSize == other.minSize &&
+          maxSize == other.maxSize &&
+          animationDuration == other.animationDuration &&
+          particleColor == other.particleColor &&
+          imagePath == other.imagePath &&
+          customParticle == other.customParticle &&
+          minOpacity == other.minOpacity &&
+          maxOpacity == other.maxOpacity &&
+          enableGlow == other.enableGlow &&
+          glowRadius == other.glowRadius &&
+          enableRotation == other.enableRotation &&
+          velocityMultiplier == other.velocityMultiplier &&
+          enableSizeVariation == other.enableSizeVariation &&
+          enableOpacityAnimation == other.enableOpacityAnimation &&
+          enableBlur == other.enableBlur &&
+          blurSigma == other.blurSigma;
 
   @override
   int get hashCode => Object.hashAll([

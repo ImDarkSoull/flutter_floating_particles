@@ -72,11 +72,13 @@ class ParticlePainter extends CustomPainter {
 
     try {
       final ByteData data = await rootBundle.load(imagePath);
-      final ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+      final ui.Codec codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(),
+      );
       final ui.FrameInfo frameInfo = await codec.getNextFrame();
       _imageCache[imagePath] = frameInfo.image;
     } catch (e) {
-      print('Error loading image $imagePath: $e');
+      debugPrint('Error loading image $imagePath: $e');
     } finally {
       _imageLoadingStates[imagePath] = false;
     }
@@ -94,7 +96,7 @@ class ParticlePainter extends CustomPainter {
       final ui.Image image = await _widgetToImage(widget, size);
       _customWidgetCache[widgetKey] = image;
     } catch (e) {
-      print('Error converting widget to image: $e');
+      debugPrint('Error converting widget to image: $e');
     } finally {
       _customWidgetLoadingStates[widgetKey] = false;
     }
@@ -123,11 +125,7 @@ class ParticlePainter extends CustomPainter {
       container: repaintBoundary,
       child: Directionality(
         textDirection: TextDirection.ltr,
-        child: Container(
-          width: size,
-          height: size,
-          child: widget,
-        ),
+        child: SizedBox(width: size, height: size, child: widget),
       ),
     ).attachToRenderTree(buildOwner);
 
@@ -182,12 +180,14 @@ class ParticlePainter extends CustomPainter {
     // Use time-based animation for continuous movement
     final currentTime = DateTime.now();
     final elapsedTime = currentTime.difference(startTime).inMilliseconds;
-    final timeProgress = (elapsedTime / config.animationDuration.inMilliseconds) % 1.0;
+    final timeProgress =
+        (elapsedTime / config.animationDuration.inMilliseconds) % 1.0;
 
     final position = _calculatePosition(size, particle, timeProgress);
     final opacity = _calculateOpacity(particle, timeProgress);
-    final rotation = config.enableRotation ?
-    timeProgress * 2 * pi * particle.rotationSpeed : 0.0;
+    final rotation = config.enableRotation
+        ? timeProgress * 2 * pi * particle.rotationSpeed
+        : 0.0;
 
     // Skip drawing if particle is completely transparent
     if (opacity <= 0.0) {
@@ -202,15 +202,12 @@ class ParticlePainter extends CustomPainter {
     }
 
     final paint = Paint()
-      ..color = particle.color.withOpacity(opacity)
+      ..color = particle.color.withValues(alpha: opacity)
       ..style = PaintingStyle.fill;
 
     // Apply glow effect if enabled
     if (config.enableGlow) {
-      paint.maskFilter = MaskFilter.blur(
-        BlurStyle.normal,
-        config.glowRadius,
-      );
+      paint.maskFilter = MaskFilter.blur(BlurStyle.normal, config.glowRadius);
     }
 
     // Apply blur effect if enabled
@@ -227,18 +224,23 @@ class ParticlePainter extends CustomPainter {
   }
 
   /// Calculates the current position of a particle based on time progress.
-  Offset _calculatePosition(Size size, ParticleData particle, double timeProgress) {
+  Offset _calculatePosition(
+    Size size,
+    ParticleData particle,
+    double timeProgress,
+  ) {
     double x, y;
 
     // Calculate particle-specific progress with offset for staggered animation
     final particleProgress = (timeProgress + particle.animationOffset) % 1.0;
-    final adjustedProgress = particleProgress * particle.velocity * particle.screenOccupancy;
+    final adjustedProgress =
+        particleProgress * particle.velocity * particle.screenOccupancy;
 
     switch (config.direction) {
       case ParticleDirection.topToBottom:
         x = particle.initialX * size.width;
         // Particles continuously fall from top to bottom
-        y =  (adjustedProgress * (size.height ));
+        y = (adjustedProgress * (size.height));
         // Add natural horizontal drift
         x += 30 * sin(adjustedProgress * 2 * pi + particle.animationOffset);
         break;
@@ -280,9 +282,12 @@ class ParticlePainter extends CustomPainter {
     final particleProgress = (timeProgress + particle.animationOffset) % 1.0;
 
     // Create smooth opacity animation using sine wave
-    final baseOpacity = config.minOpacity +
+    final baseOpacity =
+        config.minOpacity +
         (config.maxOpacity - config.minOpacity) *
-            (0.5 + 0.5 * sin(particleProgress * 4 * pi + particle.animationOffset));
+            (0.5 +
+                0.5 *
+                    sin(particleProgress * 4 * pi + particle.animationOffset));
 
     return baseOpacity.clamp(0.0, 1.0);
   }
@@ -291,11 +296,7 @@ class ParticlePainter extends CustomPainter {
   void _drawParticleShape(Canvas canvas, ParticleData particle, Paint paint) {
     switch (config.particleType) {
       case ParticleType.circle:
-        canvas.drawCircle(
-          Offset.zero,
-          particle.size / 2,
-          paint,
-        );
+        canvas.drawCircle(Offset.zero, particle.size / 2, paint);
         break;
 
       case ParticleType.square:
@@ -331,24 +332,17 @@ class ParticlePainter extends CustomPainter {
   void _drawCustomWidget(Canvas canvas, ParticleData particle, Paint paint) {
     if (config.customParticle == null) {
       // Fallback to circle if no custom widget provided
-      canvas.drawCircle(
-        Offset.zero,
-        particle.size / 2,
-        paint,
-      );
+      canvas.drawCircle(Offset.zero, particle.size / 2, paint);
       return;
     }
 
-    final String widgetKey = '${config.customParticle.runtimeType}_${particle.size.round()}';
+    final String widgetKey =
+        '${config.customParticle.runtimeType}_${particle.size.round()}';
     final image = _customWidgetCache[widgetKey];
 
     if (image == null) {
       // Widget not converted to image yet, show circle as placeholder
-      canvas.drawCircle(
-        Offset.zero,
-        particle.size / 2,
-        paint,
-      );
+      canvas.drawCircle(Offset.zero, particle.size / 2, paint);
 
       // Trigger widget to image conversion if not already loading
       if (!(_customWidgetLoadingStates[widgetKey] ?? false)) {
@@ -374,7 +368,7 @@ class ParticlePainter extends CustomPainter {
     // Apply color filter and opacity
     Paint imagePaint = Paint()
       ..colorFilter = ColorFilter.mode(
-        Colors.white.withOpacity(paint.color.opacity),
+        Colors.white.withValues(alpha: paint.color.a),
         BlendMode.modulate,
       )
       ..maskFilter = paint.maskFilter
@@ -390,11 +384,7 @@ class ParticlePainter extends CustomPainter {
 
     if (imagePath == null) {
       // Fallback to circle if no image path provided
-      canvas.drawCircle(
-        Offset.zero,
-        particle.size / 2,
-        paint,
-      );
+      canvas.drawCircle(Offset.zero, particle.size / 2, paint);
       return;
     }
 
@@ -402,11 +392,7 @@ class ParticlePainter extends CustomPainter {
 
     if (image == null) {
       // Image not loaded yet, show circle as placeholder
-      canvas.drawCircle(
-        Offset.zero,
-        particle.size / 2,
-        paint,
-      );
+      canvas.drawCircle(Offset.zero, particle.size / 2, paint);
       return;
     }
 
@@ -443,7 +429,7 @@ class ParticlePainter extends CustomPainter {
         (config.gradientColors != null && config.gradientColors!.isNotEmpty)) {
       imagePaint = Paint()
         ..colorFilter = ColorFilter.mode(
-          particle.color.withOpacity(paint.color.opacity),
+          particle.color.withValues(alpha: paint.color.a),
           BlendMode.modulate,
         )
         ..maskFilter = paint.maskFilter
@@ -452,7 +438,7 @@ class ParticlePainter extends CustomPainter {
       // Just apply opacity
       imagePaint = Paint()
         ..colorFilter = ColorFilter.mode(
-          Colors.white.withOpacity(paint.color.opacity),
+          Colors.white.withValues(alpha: paint.color.a),
           BlendMode.modulate,
         )
         ..maskFilter = paint.maskFilter

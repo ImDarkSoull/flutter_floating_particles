@@ -12,7 +12,7 @@ void main() {
       expect(config.particleCount, equals(50));
       expect(config.minSize, equals(2.0));
       expect(config.maxSize, equals(6.0));
-      expect(config.animationDuration, equals(Duration(seconds: 10)));
+      expect(config.animationDuration, equals(const Duration(seconds: 10)));
       expect(config.enableGlow, equals(false));
       expect(config.enableRotation, equals(false));
     });
@@ -106,15 +106,15 @@ void main() {
   });
 
   group('ParticleEffects Widget Tests', () {
-    testWidgets('ParticleEffects creates widget tree correctly', (tester) async {
+    testWidgets('ParticleEffects creates widget tree correctly', (
+      tester,
+    ) async {
       const testChild = Text('Test Child');
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: ParticleEffects(
-            config: ParticleConfig.snow,
-            child: testChild,
-          ),
+        const MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: ParticleEffects(config: ParticleConfig.snow, child: testChild),
         ),
       );
 
@@ -127,7 +127,8 @@ void main() {
       const testChild = Text('Test Child');
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
+          debugShowCheckedModeBanner: false,
           home: ParticleEffects(
             config: ParticleConfig.snow,
             isEnabled: false,
@@ -145,11 +146,9 @@ void main() {
 
       // Start with snow config
       await tester.pumpWidget(
-        MaterialApp(
-          home: ParticleEffects(
-            config: ParticleConfig.snow,
-            child: testChild,
-          ),
+        const MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: ParticleEffects(config: ParticleConfig.snow, child: testChild),
         ),
       );
 
@@ -157,7 +156,8 @@ void main() {
 
       // Change to fire ashes config
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
+          debugShowCheckedModeBanner: false,
           home: ParticleEffects(
             config: ParticleConfig.fireAshes,
             child: testChild,
@@ -169,8 +169,6 @@ void main() {
       expect(find.byType(CustomPaint), findsOneWidget);
     });
   });
-
-
 
   group('Enum Tests', () {
     test('ParticleType enum values', () {
