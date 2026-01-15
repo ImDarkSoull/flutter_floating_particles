@@ -7,7 +7,7 @@ A beautiful and customizable particle effects package for Flutter! Create stunni
 ## ✨ Features
 
 - ✅ **Multiple particle types** (Circle, Square, Star, Heart, Leaf, Image, Custom Widget) 🎨
-- ✅ **Pre-built effects** (Snow, Rain, Confetti, Bubbles, Stars, Hearts) ❄️
+- ✅ **Pre-built effects** (Snow, Rain, Confetti, Bubbles, Stars, Hearts, Falling Leaves) ❄️
 - ✅ **Custom particle effects** with full control over behavior 🎯
 - ✅ **Gradient color support** for vibrant particles 🌈
 - ✅ **Glow and blur effects** for enhanced visuals ✨
@@ -81,7 +81,24 @@ ParticleEffects(
 )
 ```
 
-### 5️⃣ Custom Widget Particles
+### 5️⃣ Network and SVG Images
+
+```dart
+ParticleEffects(
+  config: ParticleConfig(
+    particleType: ParticleType.image,
+    // Supporting PNG, JPG, and SVG from network or assets
+    imagePath: "https://example.com/heart.svg", 
+    particleCount: 30,
+    minSize: 10.0,
+    maxSize: 20.0,
+  ),
+  isEnabled: true,
+  child: YourWidget(),
+)
+```
+
+### 6️⃣ Custom Widget Particles
 
 ```dart
 ParticleEffects(
@@ -126,7 +143,7 @@ ParticleEffects(
 | `minOpacity` | `double` | Minimum particle opacity | `0.5` |
 | `maxOpacity` | `double` | Maximum particle opacity | `1.0` |
 | `animationDuration` | `Duration` | Duration for one complete cycle | `Duration(seconds: 10)` |
-| `imagePath` | `String?` | Asset path for image particles | `null` |
+| `imagePath` | `String?` | Path for image particles (Assets/Network, PNG/SVG supported) | `null` |
 | `customParticle` | `Widget?` | Custom widget for particles | `null` |
 
 ### Pre-built Effects
