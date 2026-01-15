@@ -11,6 +11,9 @@ enum ParticleType {
   /// Heart-shaped particles - ideal for romantic or love-themed animations
   heart,
 
+  /// Leaf-shaped particles - perfect for nature or autumn themes
+  leaf,
+
   /// Use custom image assets as particles
   image,
 

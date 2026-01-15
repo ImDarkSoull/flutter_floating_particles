@@ -172,11 +172,12 @@ void main() {
 
   group('Enum Tests', () {
     test('ParticleType enum values', () {
-      expect(ParticleType.values.length, equals(6));
+      expect(ParticleType.values.length, equals(7));
       expect(ParticleType.values, contains(ParticleType.circle));
       expect(ParticleType.values, contains(ParticleType.square));
       expect(ParticleType.values, contains(ParticleType.star));
       expect(ParticleType.values, contains(ParticleType.heart));
+      expect(ParticleType.values, contains(ParticleType.leaf));
       expect(ParticleType.values, contains(ParticleType.image));
       expect(ParticleType.values, contains(ParticleType.custom));
     });

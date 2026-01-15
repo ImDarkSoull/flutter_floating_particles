@@ -134,7 +134,7 @@ class ParticleConfig {
 
   /// Falling leaves with rotation effect
   static const ParticleConfig fallingLeaves = ParticleConfig(
-    particleType: ParticleType.star,
+    particleType: ParticleType.leaf,
     direction: ParticleDirection.topToBottom,
     particleCoverage: ParticleCoverage.full,
     particleCount: 20,

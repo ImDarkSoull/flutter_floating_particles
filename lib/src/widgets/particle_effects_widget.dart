@@ -87,7 +87,7 @@ class _ParticleEffectsState extends State<ParticleEffects>
   late Animation<double> _animation;
   final List<ParticleData> _particles = [];
   bool _isInitialized = false;
-  bool _isImageLoading = false;
+
   late DateTime _startTime;
 
   @override
@@ -115,10 +115,6 @@ class _ParticleEffectsState extends State<ParticleEffects>
     }
 
     if (needsLoading) {
-      setState(() {
-        _isImageLoading = true;
-      });
-
       try {
         if (widget.config.particleType == ParticleType.image &&
             widget.config.imagePath != null) {
@@ -136,12 +132,6 @@ class _ParticleEffectsState extends State<ParticleEffects>
         }
       } catch (e) {
         debugPrint('Error preloading particle resources: $e');
-      }
-
-      if (mounted) {
-        setState(() {
-          _isImageLoading = false;
-        });
       }
     }
 
@@ -235,41 +225,26 @@ class _ParticleEffectsState extends State<ParticleEffects>
         // Child widget (the content being wrapped)
         widget.child,
 
-        // Show loading indicator if images/widgets are loading
-        if (_isImageLoading)
-          Positioned.fill(
-            child:
-                widget.loadingWidget ??
-                Container(
-                  color: Colors.transparent,
-                  child: const Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                ),
-          ),
-
         // Particle overlay
-        if (widget.isEnabled && _isInitialized && !_isImageLoading)
+        if (widget.isEnabled && _isInitialized)
           Positioned.fill(
             child: IgnorePointer(
-              child: AnimatedBuilder(
-                animation: _animation,
-                builder: (context, child) {
-                  return CustomPaint(
-                    painter: ParticlePainter(
-                      particles: _particles,
-                      animation: _animation,
-                      config: widget.config,
-                      screenSize: MediaQuery.of(context).size,
-                      startTime: _startTime,
-                    ),
-                    size: Size.infinite,
-                  );
-                },
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _animation,
+                  builder: (context, child) {
+                    return CustomPaint(
+                      painter: ParticlePainter(
+                        particles: _particles,
+                        animation: _animation,
+                        config: widget.config,
+                        screenSize: MediaQuery.of(context).size,
+                        startTime: _startTime,
+                      ),
+                      size: Size.infinite,
+                    );
+                  },
+                ),
               ),
             ),
           ),

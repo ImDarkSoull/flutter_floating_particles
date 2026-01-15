@@ -41,13 +41,13 @@ class _ParticleDemoState extends State<ParticleDemo> {
         particleType: ParticleType.circle,
         direction: ParticleDirection.topToBottom,
         particleCoverage: ParticleCoverage.half,
-        particleCount: 70,
+        particleCount: 500,
         minSize: 2.0,
         maxSize: 8.0,
         particleColor: Colors.white,
         enableGlow: true,
         glowRadius: 1.5,
-        velocityMultiplier: 0.8,
+        velocityMultiplier: 0.9,
         animationDuration: Duration(seconds: 15),
         minOpacity: 0.6,
         maxOpacity: 1.0,
@@ -171,7 +171,7 @@ class _ParticleDemoState extends State<ParticleDemo> {
     EffectOption(
       'Falling Leaves',
       ParticleConfig(
-        particleType: ParticleType.star,
+        particleType: ParticleType.leaf,
         direction: ParticleDirection.topToBottom, // Already falling
         particleCount: 30,
         minSize: 8.0,
@@ -216,6 +216,23 @@ class _ParticleDemoState extends State<ParticleDemo> {
         minSize: 8.0,
         maxSize: 150.0,
         enableRotation: true,
+        velocityMultiplier: 0.6,
+        animationDuration: Duration(seconds: 20),
+        minOpacity: 0.7,
+        maxOpacity: 1.0,
+      ),
+    ),
+    EffectOption(
+      'Online Image',
+      ParticleConfig(
+        particleType: ParticleType.image,
+        direction: ParticleDirection.topToBottom, // Already falling
+        particleCount: 30,
+        imagePath: "https://img.icons8.com/fluency/48/filled-like--v1.png",
+        minSize: 8.0,
+        maxSize: 20.0,
+        enableRotation: true,
+        enableSizeVariation: false,
         velocityMultiplier: 0.6,
         animationDuration: Duration(seconds: 20),
         minOpacity: 0.7,

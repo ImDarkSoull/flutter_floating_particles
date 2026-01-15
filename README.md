@@ -6,7 +6,7 @@ A beautiful and customizable particle effects package for Flutter! Create stunni
 
 ## ✨ Features
 
-- ✅ **Multiple particle types** (Circle, Square, Star, Heart, Image, Custom Widget) 🎨
+- ✅ **Multiple particle types** (Circle, Square, Star, Heart, Leaf, Image, Custom Widget) 🎨
 - ✅ **Pre-built effects** (Snow, Rain, Confetti, Bubbles, Stars, Hearts) ❄️
 - ✅ **Custom particle effects** with full control over behavior 🎯
 - ✅ **Gradient color support** for vibrant particles 🌈
@@ -110,7 +110,7 @@ ParticleEffects(
 
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
-| `particleType` | `ParticleType` | Type of particle (circle, square, star, heart, image, custom) | `ParticleType.circle` |
+| `particleType` | `ParticleType` | Type of particle (circle, square, star, heart, leaf, image, custom) | `ParticleType.circle` |
 | `direction` | `ParticleDirection` | Movement direction of particles | `ParticleDirection.topToBottom` |
 | `particleCount` | `int` | Number of particles to display | `50` |
 | `minSize` | `double` | Minimum particle size | `2.0` |
@@ -139,6 +139,7 @@ ParticleConfig.confetti
 ParticleConfig.bubbles
 ParticleConfig.stars
 ParticleConfig.hearts
+ParticleConfig.fallingLeaves
 ```
 
 ### ParticleType Enum
@@ -149,6 +150,7 @@ enum ParticleType {
   square,
   star,
   heart,
+  leaf,
   image,
   custom,
 }

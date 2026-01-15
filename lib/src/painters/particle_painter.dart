@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart' as http;
 import '../models/particle_config.dart';
 import '../models/particle_data.dart';
 import '../models/particle_type.dart';
@@ -40,13 +42,38 @@ class ParticlePainter extends CustomPainter {
   /// Loading states for custom widgets
   static final Map<String, bool> _customWidgetLoadingStates = {};
 
-  const ParticlePainter({
+  ParticlePainter({
     required this.particles,
     required this.animation,
     required this.config,
     required this.screenSize,
     required this.startTime,
   });
+
+  // Reusable objects to avoid GC pressure
+  final Paint _paint = Paint();
+  static final Path _starPath = _createStarPath();
+
+  static Path _createStarPath() {
+    final path = Path();
+    // Create a star of radius 1.0 centered at 0,0
+    const double radius = 1.0;
+    const double innerRadius = 0.4; // relative to radius
+
+    for (int i = 0; i < 10; i++) {
+      final angle = (i * pi) / 5 - pi / 2;
+      final r = i % 2 == 0 ? radius : innerRadius;
+      final x = r * cos(angle);
+      final y = r * sin(angle);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    path.close();
+    return path;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -65,18 +92,63 @@ class ParticlePainter extends CustomPainter {
   }
 
   /// Loads an image from assets and caches it
+  /// Loads an image from assets or network and caches it
   static Future<void> _loadImage(String imagePath) async {
     if (_imageLoadingStates[imagePath] == true) return;
 
     _imageLoadingStates[imagePath] = true;
 
     try {
-      final ByteData data = await rootBundle.load(imagePath);
-      final ui.Codec codec = await ui.instantiateImageCodec(
-        data.buffer.asUint8List(),
-      );
-      final ui.FrameInfo frameInfo = await codec.getNextFrame();
-      _imageCache[imagePath] = frameInfo.image;
+      final bool isNetwork = imagePath.toLowerCase().startsWith('http');
+      final bool isSvg = imagePath.toLowerCase().endsWith('.svg');
+      Uint8List bytes;
+
+      if (isNetwork) {
+        final response = await http.get(Uri.parse(imagePath));
+        if (response.statusCode == 200) {
+          bytes = response.bodyBytes;
+        } else {
+          throw Exception(
+            'Failed to load network image: ${response.statusCode}',
+          );
+        }
+      } else {
+        final ByteData data = await rootBundle.load(imagePath);
+        bytes = data.buffer.asUint8List();
+      }
+
+      ui.Image image;
+
+      if (isSvg) {
+        // Render SVG to ui.Image
+        // We need to define a standard size for sizing the SVG.
+        // Since particles scale, we'll render at a reasonable resolution (e.g., 200x200)
+        // and let drawing scale it down.
+        const double svgSize = 200.0;
+        final PictureInfo pictureInfo = await vg.loadPicture(
+          SvgStringLoader(String.fromCharCodes(bytes)),
+          null,
+          clipViewbox: false,
+        );
+
+        final ui.PictureRecorder recorder = ui.PictureRecorder();
+        final Canvas canvas = Canvas(recorder);
+
+        // Transform to fit 200x200
+        final double scale = svgSize / pictureInfo.size.width;
+        canvas.scale(scale, scale);
+
+        canvas.drawPicture(pictureInfo.picture);
+        final ui.Picture picture = recorder.endRecording();
+        image = await picture.toImage(svgSize.toInt(), svgSize.toInt());
+      } else {
+        // Raster image
+        final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+        final ui.FrameInfo frameInfo = await codec.getNextFrame();
+        image = frameInfo.image;
+      }
+
+      _imageCache[imagePath] = image;
     } catch (e) {
       debugPrint('Error loading image $imagePath: $e');
     } finally {
@@ -194,6 +266,27 @@ class ParticlePainter extends CustomPainter {
       return;
     }
 
+    // Configure reusable paint
+    _paint.color = particle.color.withValues(alpha: opacity);
+    _paint.style = PaintingStyle.fill;
+
+    // Apply glow effect if enabled
+    if (config.enableGlow) {
+      _paint.maskFilter = MaskFilter.blur(BlurStyle.normal, config.glowRadius);
+    } else {
+      _paint.maskFilter = null;
+    }
+
+    // Apply blur effect if enabled
+    if (config.enableBlur) {
+      _paint.imageFilter = ui.ImageFilter.blur(
+        sigmaX: config.blurSigma,
+        sigmaY: config.blurSigma,
+      );
+    } else {
+      _paint.imageFilter = null;
+    }
+
     canvas.save();
     canvas.translate(position.dx, position.dy);
 
@@ -201,24 +294,7 @@ class ParticlePainter extends CustomPainter {
       canvas.rotate(rotation);
     }
 
-    final paint = Paint()
-      ..color = particle.color.withValues(alpha: opacity)
-      ..style = PaintingStyle.fill;
-
-    // Apply glow effect if enabled
-    if (config.enableGlow) {
-      paint.maskFilter = MaskFilter.blur(BlurStyle.normal, config.glowRadius);
-    }
-
-    // Apply blur effect if enabled
-    if (config.enableBlur) {
-      paint.imageFilter = ui.ImageFilter.blur(
-        sigmaX: config.blurSigma,
-        sigmaY: config.blurSigma,
-      );
-    }
-
-    _drawParticleShape(canvas, particle, paint);
+    _drawParticleShape(canvas, particle, _paint);
 
     canvas.restore();
   }
@@ -316,6 +392,10 @@ class ParticlePainter extends CustomPainter {
 
       case ParticleType.heart:
         _drawHeart(canvas, particle.size, paint);
+        break;
+
+      case ParticleType.leaf:
+        _drawLeaf(canvas, particle.size, paint);
         break;
 
       case ParticleType.image:
@@ -450,28 +530,18 @@ class ParticlePainter extends CustomPainter {
   }
 
   /// Draws a star shape with the given size and paint.
+  /// Draws a star shape using pre-calculated path
   void _drawStar(Canvas canvas, double size, Paint paint) {
-    final path = Path();
-    final radius = size / 2;
-    final innerRadius = radius * 0.4;
-
-    for (int i = 0; i < 10; i++) {
-      final angle = (i * pi) / 5 - pi / 2; // Start from top
-      final r = i % 2 == 0 ? radius : innerRadius;
-      final x = r * cos(angle);
-      final y = r * sin(angle);
-
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-
-    path.close();
-    canvas.drawPath(path, paint);
+    canvas.save();
+    // Scale the unit star path (which has radius 1.0 => diameter 2.0)
+    // We want valid size. so scale by size/2
+    final scale = size / 2.0;
+    canvas.scale(scale, scale);
+    canvas.drawPath(_starPath, paint);
+    canvas.restore();
   }
 
+  /// Draws a heart shape with the given size and paint.
   /// Draws a heart shape with the given size and paint.
   void _drawHeart(Canvas canvas, double size, Paint paint) {
     final path = Path();
@@ -482,6 +552,30 @@ class ParticlePainter extends CustomPainter {
     path.cubicTo(-8 * scale, -4 * scale, -8 * scale, 4 * scale, 0, 8 * scale);
     path.cubicTo(8 * scale, 4 * scale, 8 * scale, -4 * scale, 0, 4 * scale);
 
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  /// Draws a leaf shape with the given size and paint.
+  void _drawLeaf(Canvas canvas, double size, Paint paint) {
+    final path = Path();
+    final scale = size / 20; // Scale factor based on typical leaf path
+
+    // Draw a simple leaf shape
+    path.moveTo(0, -10 * scale);
+    // Left curve
+    path.cubicTo(
+      -10 * scale,
+      -5 * scale,
+      -10 * scale,
+      5 * scale,
+      0,
+      10 * scale,
+    );
+    // Right curve
+    path.cubicTo(10 * scale, 5 * scale, 10 * scale, -5 * scale, 0, -10 * scale);
+
+    path.close();
     canvas.drawPath(path, paint);
   }
 
