@@ -1,30 +1,30 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
+import 'package:example/main.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_floating_particles/flutter_floating_particles.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:example/main.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget( MyApp());
+  testWidgets('demo app switches presets and tabs', (tester) async {
+    // A phone-sized screen, so every preset button is visible
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(const ParticleDemoApp());
+    await tester.pump(const Duration(milliseconds: 100));
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(find.text('Particle Effects'), findsOneWidget);
+    expect(find.byType(ParticleEffects), findsWidgets);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text('Confetti'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('Showing: Confetti'), findsOneWidget);
+
+    await tester.tap(find.text('Interactive'));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.text('Celebrate'));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(tester.takeException(), isNull);
   });
 }

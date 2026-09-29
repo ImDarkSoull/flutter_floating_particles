@@ -14,4 +14,12 @@ enum ParticleDirection {
 
   /// Particles move diagonally from top-left to bottom-right
   diagonal,
+
+  /// Particles stay in place and gently wander (like fireflies or twinkling
+  /// stars)
+  none,
+
+  /// Particles fly outward from the center and grow (like a starfield or
+  /// warp-speed effect)
+  radial,
 }

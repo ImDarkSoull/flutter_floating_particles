@@ -1,13 +1,16 @@
-library flutter_floating_particles;
+/// Animated particle effects for Flutter: snow, rain, confetti, bubbles,
+/// stars, custom shapes, images and widgets, with bursts and touch
+/// interaction.
+library;
 
 export 'src/widgets/particle_effects_widget.dart';
 
 // Export models
-export 'src/models/particle_config.dart';
-export 'src/models/particle_type.dart';
-export 'src/models/particle_covrage.dart';
 export 'src/models/direction.dart';
+export 'src/models/particle_config.dart';
+export 'src/models/particle_coverage.dart';
 export 'src/models/particle_data.dart';
-
-// Export painters (in case users want to extend functionality)
-export 'src/painters/particle_painter.dart';
+export 'src/models/particle_effect_type.dart';
+export 'src/models/particle_interaction.dart';
+export 'src/models/particle_layer.dart';
+export 'src/models/particle_type.dart';

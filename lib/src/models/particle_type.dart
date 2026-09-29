@@ -1,3 +1,4 @@
+/// The visual shape of each particle.
 enum ParticleType {
   /// Simple circular particles - great for snow, bubbles, or dots
   circle,
@@ -14,9 +15,16 @@ enum ParticleType {
   /// Leaf-shaped particles - perfect for nature or autumn themes
   leaf,
 
-  /// Use custom image assets as particles
+  /// Thin streaks aligned with the direction of motion - ideal for rain
+  streak,
+
+  /// A custom shape given by [ParticleConfig.customPath]
+  path,
+
+  /// An image from [ParticleConfig.image] or [ParticleConfig.imagePath]
+  /// (asset or network; PNG, JPG, GIF, WebP or SVG)
   image,
 
-  /// Completely custom particle shape defined by the user
+  /// A widget from [ParticleConfig.customParticle], rendered once to an image
   custom,
 }
