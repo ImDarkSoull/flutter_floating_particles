@@ -53,12 +53,18 @@ class ParticleData {
   /// while still providing natural-looking variation between particles.
   static ParticleData generate(int index, ParticleConfig config) {
     final random = Random(index);
+    final initialX = random.nextDouble();
+    final initialY = random.nextDouble();
+    // Always draw the value so the remaining properties don't depend on
+    // whether size variation is enabled.
+    final sizeFactor = random.nextDouble();
 
     return ParticleData(
-      initialX: random.nextDouble(),
-      initialY: random.nextDouble(),
-      size: config.minSize +
-          random.nextDouble() * (config.maxSize - config.minSize),
+      initialX: initialX,
+      initialY: initialY,
+      size: config.enableSizeVariation
+          ? config.minSize + sizeFactor * (config.maxSize - config.minSize)
+          : config.maxSize,
       velocity: 0.5 + random.nextDouble() * 0.5,
       screenOccupancy: _screenOccupancyGenerator(config.particleCoverage),
       rotationSpeed: (random.nextDouble() - 0.5) * 4,

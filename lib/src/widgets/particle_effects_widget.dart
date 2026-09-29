@@ -26,10 +26,12 @@ class ParticleEffects extends StatefulWidget {
   /// Whether the particle animation is currently enabled
   final bool isEnabled;
 
-  /// Callback triggered when animation completes a cycle (optional)
+  /// Callback triggered each time the animation completes a cycle
+  /// ([ParticleConfig.animationDuration]) (optional)
   final VoidCallback? onAnimationComplete;
 
-  /// Widget to show while images are loading (only for image particles)
+  /// Widget shown centered over [child] while image or custom widget
+  /// particles are loading (optional)
   final Widget? loadingWidget;
 
   const ParticleEffects({
@@ -82,13 +84,20 @@ class ParticleEffects extends StatefulWidget {
 }
 
 class _ParticleEffectsState extends State<ParticleEffects>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
   final List<ParticleData> _particles = [];
   bool _isInitialized = false;
+  bool _isLoading = false;
+
+  /// Incremented on each load so that a stale load finishing late is ignored
+  int _loadGeneration = 0;
 
   late DateTime _startTime;
+
+  /// Number of completed cycles already reported to onAnimationComplete
+  int _reportedCycles = 0;
 
   @override
   void initState() {
@@ -99,7 +108,8 @@ class _ParticleEffectsState extends State<ParticleEffects>
   }
 
   /// Initialize particles with image/widget preloading if needed
-  void _initializeParticles() async {
+  Future<void> _initializeParticles() async {
+    final generation = ++_loadGeneration;
     bool needsLoading = false;
 
     // Check if we need to preload an image
@@ -115,6 +125,9 @@ class _ParticleEffectsState extends State<ParticleEffects>
     }
 
     if (needsLoading) {
+      // Set synchronously: this runs from initState or didUpdateWidget, and
+      // both are followed by a build.
+      _isLoading = true;
       try {
         if (widget.config.particleType == ParticleType.image &&
             widget.config.imagePath != null) {
@@ -123,11 +136,10 @@ class _ParticleEffectsState extends State<ParticleEffects>
 
         if (widget.config.particleType == ParticleType.custom &&
             widget.config.customParticle != null) {
-          // Preload widget with average particle size
-          final avgSize = (widget.config.minSize + widget.config.maxSize) / 2;
+          // Render at the largest particle size; smaller ones scale down
           await ParticlePainter.preloadCustomWidget(
             widget.config.customParticle!,
-            avgSize,
+            widget.config.maxSize,
           );
         }
       } catch (e) {
@@ -135,9 +147,13 @@ class _ParticleEffectsState extends State<ParticleEffects>
       }
     }
 
+    // The widget was disposed, or a newer config started loading meanwhile
+    if (!mounted || generation != _loadGeneration) return;
+
     _generateParticles();
     setState(() {
       _isInitialized = true;
+      _isLoading = false;
     });
   }
 
@@ -152,9 +168,29 @@ class _ParticleEffectsState extends State<ParticleEffects>
       CurvedAnimation(parent: _animationController, curve: Curves.linear),
     );
 
+    _animationController.addListener(_reportCompletedCycles);
+
     if (widget.isEnabled) {
       _animationController.repeat();
     }
+  }
+
+  /// Calls [ParticleEffects.onAnimationComplete] once per completed cycle.
+  ///
+  /// Cycles are counted from [_startTime], the same clock the painter uses.
+  void _reportCompletedCycles() {
+    final callback = widget.onAnimationComplete;
+    final cycles = _elapsedCycles();
+    if (cycles > _reportedCycles) {
+      _reportedCycles = cycles;
+      callback?.call();
+    }
+  }
+
+  int _elapsedCycles() {
+    final durationMs = widget.config.animationDuration.inMilliseconds;
+    if (durationMs <= 0) return 0;
+    return DateTime.now().difference(_startTime).inMilliseconds ~/ durationMs;
   }
 
   /// Generates all particles based on the current configuration.
@@ -192,6 +228,9 @@ class _ParticleEffectsState extends State<ParticleEffects>
       if (needsImageReload || needsWidgetReload) {
         _initializeParticles(); // This will handle image/widget loading
       } else {
+        // Supersede any load still in progress for the previous config
+        _loadGeneration++;
+        _isLoading = false;
         _generateParticles();
       }
 
@@ -199,6 +238,7 @@ class _ParticleEffectsState extends State<ParticleEffects>
       if (oldWidget.config.animationDuration !=
           widget.config.animationDuration) {
         _animationController.duration = widget.config.animationDuration;
+        _reportedCycles = _elapsedCycles();
       }
     }
 
@@ -214,6 +254,7 @@ class _ParticleEffectsState extends State<ParticleEffects>
 
   @override
   void dispose() {
+    _animationController.removeListener(_reportCompletedCycles);
     _animationController.dispose();
     super.dispose();
   }
@@ -238,7 +279,6 @@ class _ParticleEffectsState extends State<ParticleEffects>
                         particles: _particles,
                         animation: _animation,
                         config: widget.config,
-                        screenSize: MediaQuery.of(context).size,
                         startTime: _startTime,
                       ),
                       size: Size.infinite,
@@ -248,12 +288,18 @@ class _ParticleEffectsState extends State<ParticleEffects>
               ),
             ),
           ),
+
+        // Loading indicator for image/custom widget particles
+        if (widget.isEnabled && _isLoading && widget.loadingWidget != null)
+          Positioned.fill(
+            child: IgnorePointer(child: Center(child: widget.loadingWidget)),
+          ),
       ],
     );
   }
 }
 
-/// Predefined particle effect types for SimpleParticleEffects.
+/// Names of the predefined effects available as [ParticleConfig] presets.
 enum ParticleEffectType {
   snow,
   rain,

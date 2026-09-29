@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_floating_particles/flutter_floating_particles.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -167,6 +170,154 @@ void main() {
 
       await tester.pump();
       expect(find.byType(CustomPaint), findsOneWidget);
+    });
+  });
+
+  group('Regression Tests', () {
+    tearDown(ParticleEffects.clearImageCache);
+
+    test('ParticleConfig equality includes gradientColors', () {
+      const config1 = ParticleConfig(gradientColors: [Colors.red]);
+      const config2 = ParticleConfig(gradientColors: [Colors.red]);
+      const config3 = ParticleConfig(gradientColors: [Colors.blue]);
+
+      expect(config1, equals(config2));
+      expect(config1.hashCode, equals(config2.hashCode));
+      expect(config1, isNot(equals(config3)));
+    });
+
+    test('enableSizeVariation: false gives every particle maxSize', () {
+      const config = ParticleConfig(
+        minSize: 2.0,
+        maxSize: 9.0,
+        enableSizeVariation: false,
+      );
+
+      for (int i = 0; i < 20; i++) {
+        expect(ParticleData.generate(i, config).size, equals(9.0));
+      }
+    });
+
+    testWidgets('a failed image load is not retried every frame', (
+      tester,
+    ) async {
+      int loadAttempts = 0;
+      tester.binding.defaultBinaryMessenger.setMockMessageHandler(
+        'flutter/assets',
+        (message) async {
+          loadAttempts++;
+          return null; // Asset not found
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMessageHandler(
+          'flutter/assets',
+          null,
+        ),
+      );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: ParticleEffects(
+            config: ParticleConfig(
+              particleType: ParticleType.image,
+              imagePath: 'assets/missing.png',
+            ),
+            child: SizedBox(),
+          ),
+        ),
+      );
+
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+
+      expect(loadAttempts, equals(1));
+    });
+
+    testWidgets('disposing while an image loads does not throw', (
+      tester,
+    ) async {
+      final completer = Completer<ByteData?>();
+      tester.binding.defaultBinaryMessenger.setMockMessageHandler(
+        'flutter/assets',
+        (message) => completer.future,
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMessageHandler(
+          'flutter/assets',
+          null,
+        ),
+      );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: ParticleEffects(
+            config: ParticleConfig(
+              particleType: ParticleType.image,
+              imagePath: 'assets/slow.png',
+            ),
+            loadingWidget: Text('Loading'),
+            child: SizedBox(),
+          ),
+        ),
+      );
+
+      expect(find.text('Loading'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+      completer.complete(null);
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('onAnimationComplete fires after a cycle', (tester) async {
+      int completedCycles = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: ParticleEffects(
+            config: const ParticleConfig(
+              animationDuration: Duration(milliseconds: 50),
+            ),
+            onAnimationComplete: () => completedCycles++,
+            child: const SizedBox(),
+          ),
+        ),
+      );
+
+      expect(completedCycles, equals(0));
+
+      // Cycles are timed with the wall clock, so let real time pass
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 80)),
+      );
+      await tester.pump(const Duration(milliseconds: 16));
+
+      expect(completedCycles, equals(1));
+    });
+
+    testWidgets('different custom widgets of the same type are cached apart', (
+      tester,
+    ) async {
+      const widgetA = ColoredBox(color: Colors.red);
+      const widgetB = ColoredBox(color: Colors.blue);
+
+      await tester.runAsync(() async {
+        await ParticleEffects.preloadCustomWidget(widgetA, 10);
+        await ParticleEffects.preloadCustomWidget(widgetB, 10);
+      });
+
+      final imageA = ParticlePainter.getCustomWidgetImage(widgetA, 10);
+      final imageB = ParticlePainter.getCustomWidgetImage(widgetB, 10);
+
+      expect(imageA, isNotNull);
+      expect(imageB, isNotNull);
+      expect(identical(imageA, imageB), isFalse);
     });
   });
 

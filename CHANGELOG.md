@@ -1,3 +1,15 @@
+## Unreleased
+
+* Fixed failed image loads (e.g. a 404 URL) being retried on every frame.
+* Fixed `velocityMultiplier`, `enableSizeVariation`, `onAnimationComplete` and `loadingWidget` having no effect.
+* Fixed `ParticleConfig` equality ignoring `gradientColors`, so color-only changes now regenerate particles.
+* Fixed different custom widgets of the same type sharing one cached image. Custom widgets are now rendered once at `maxSize` and the device pixel ratio, then scaled per particle.
+* Fixed `setState` being called after dispose while images were loading.
+* Fixed particles vanishing mid-screen and snapping at cycle boundaries. Particles now enter and leave off-screen (or fade out with partial `particleCoverage`), and `diagonal` particles are spread across the screen.
+* Fixed cached images, codecs, SVG pictures and offscreen render trees not being disposed.
+* Fixed SVG decoding of non-ASCII content and stretching of non-square SVGs.
+* Deprecated the unused `ParticlePainter.screenSize` parameter.
+
 ## 1.0.2
 
 * Significant performance optimization for low-end devices:

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../flutter_floating_particles.dart';
 
@@ -53,7 +54,8 @@ class ParticleConfig {
   /// Speed multiplier for particle movement (1.0 = normal speed)
   final double velocityMultiplier;
 
-  /// Whether particles should have varying sizes
+  /// Whether particles should have varying sizes between [minSize] and
+  /// [maxSize]. When false, every particle uses [maxSize].
   final bool enableSizeVariation;
 
   /// Whether particle opacity should animate over time
@@ -265,6 +267,7 @@ class ParticleConfig {
           velocityMultiplier == other.velocityMultiplier &&
           enableSizeVariation == other.enableSizeVariation &&
           enableOpacityAnimation == other.enableOpacityAnimation &&
+          listEquals(gradientColors, other.gradientColors) &&
           enableBlur == other.enableBlur &&
           blurSigma == other.blurSigma;
 
@@ -288,6 +291,7 @@ class ParticleConfig {
     velocityMultiplier,
     enableSizeVariation,
     enableOpacityAnimation,
+    gradientColors == null ? null : Object.hashAll(gradientColors!),
     enableBlur,
     blurSigma,
   ]);
