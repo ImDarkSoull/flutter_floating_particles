@@ -36,6 +36,13 @@ class ParticleData {
   /// Optional image path for image-based particles
   final String? imagePath;
 
+  /// Random value (0.0 to 1.0) choosing which of several particle types or
+  /// images this particle uses
+  final double variant;
+
+  /// Depth (0.0 = far, 1.0 = near), derived from the particle's size
+  final double depth;
+
   /// Creates a particle with the given properties.
   const ParticleData({
     required this.initialX,
@@ -47,6 +54,8 @@ class ParticleData {
     required this.animationOffset,
     required this.color,
     this.imagePath,
+    this.variant = 0.0,
+    this.depth = 1.0,
   });
 
   /// Generates a random particle with properties based on the given configuration.
@@ -62,19 +71,24 @@ class ParticleData {
     // Always draw the value so the remaining properties don't depend on
     // whether size variation is enabled.
     final sizeFactor = random.nextDouble();
+    final sizeRange = config.maxSize - config.minSize;
+    final size = config.enableSizeVariation
+        ? config.minSize + sizeFactor * sizeRange
+        : config.maxSize;
 
     return ParticleData(
       initialX: initialX,
       initialY: initialY,
-      size: config.enableSizeVariation
-          ? config.minSize + sizeFactor * (config.maxSize - config.minSize)
-          : config.maxSize,
+      size: size,
       velocity: 0.5 + random.nextDouble() * 0.5,
       screenOccupancy: config.particleCoverage.fraction,
       rotationSpeed: (random.nextDouble() - 0.5) * 4,
       animationOffset: random.nextDouble() * 2 * pi,
       color: pickColor(config, random),
       imagePath: config.imagePath,
+      // Drawn last so adding it didn't change the other properties
+      variant: random.nextDouble(),
+      depth: sizeRange > 0 ? (size - config.minSize) / sizeRange : 1.0,
     );
   }
 

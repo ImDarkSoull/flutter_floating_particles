@@ -1,16 +1,16 @@
 name: flutter_floating_particles
-description: Highly customizable, performant animated particle effects for Flutter. Snow, rain, confetti, bubbles, stars, images, SVGs, custom shapes and widgets, with bursts and touch interaction.
+description: Animated particle effects for Flutter. Snow, rain, confetti, fireworks, hearts and more, with emitters, bursts, physics, touch interaction, images, SVGs and widgets.
 version: 2.0.0
 homepage: https://github.com/nitesh695/flutter_floating_particles
 repository: https://github.com/nitesh695/flutter_floating_particles
 issue_tracker: https://github.com/nitesh695/flutter_floating_particles/issues
 
 topics:
-  - animation
   - particles
+  - animation
   - effects
-  - background
   - confetti
+  - ui
 
 environment:
   sdk: ^3.8.1

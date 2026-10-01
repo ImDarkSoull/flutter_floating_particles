@@ -51,7 +51,7 @@ void main() {
     test('ParticleConfig.snow preset', () {
       const config = ParticleConfig.snow;
 
-      expect(config.particleType, equals(ParticleType.circle));
+      expect(config.particleType, equals(ParticleType.snowflake));
       expect(config.direction, equals(ParticleDirection.topToBottom));
       expect(config.particleCount, equals(100));
       expect(config.particleColor, equals(Colors.white));
@@ -625,7 +625,7 @@ void main() {
 
   group('Enum Tests', () {
     test('ParticleType enum values', () {
-      expect(ParticleType.values.length, equals(9));
+      expect(ParticleType.values.length, equals(16));
       expect(ParticleType.values, contains(ParticleType.circle));
       expect(ParticleType.values, contains(ParticleType.square));
       expect(ParticleType.values, contains(ParticleType.star));
@@ -649,7 +649,7 @@ void main() {
     });
 
     test('ParticleEffectType enum values', () {
-      expect(ParticleEffectType.values.length, equals(10));
+      expect(ParticleEffectType.values.length, equals(14));
       expect(ParticleEffectType.values, contains(ParticleEffectType.snow));
       expect(ParticleEffectType.values, contains(ParticleEffectType.rain));
       expect(ParticleEffectType.values, contains(ParticleEffectType.fireAshes));

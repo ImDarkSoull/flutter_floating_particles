@@ -28,15 +28,25 @@ class ParticleInteraction {
   /// Number of particles to burst from the pointer on each tap; 0 disables.
   final int tapBurstCount;
 
+  /// Whether tapping a particle pops it with a small burst.
+  final bool popOnTap;
+
+  /// Particles emitted at the pointer for each drag movement, for painting
+  /// sparkle trails with a finger; 0 disables.
+  final int emitOnDrag;
+
   /// Creates a pointer interaction.
   const ParticleInteraction({
     this.mode = ParticleInteractionMode.repel,
     this.radius = 100,
     this.strength = 60,
     this.tapBurstCount = 0,
+    this.popOnTap = false,
+    this.emitOnDrag = 0,
   }) : assert(radius > 0),
        assert(strength >= 0),
-       assert(tapBurstCount >= 0);
+       assert(tapBurstCount >= 0),
+       assert(emitOnDrag >= 0);
 
   /// Particles move out of the pointer's way.
   static const ParticleInteraction repel = ParticleInteraction();
@@ -52,6 +62,18 @@ class ParticleInteraction {
     tapBurstCount: 30,
   );
 
+  /// Tapping a particle pops it.
+  static const ParticleInteraction pop = ParticleInteraction(
+    mode: ParticleInteractionMode.none,
+    popOnTap: true,
+  );
+
+  /// Dragging a finger paints a trail of particles.
+  static const ParticleInteraction paint = ParticleInteraction(
+    mode: ParticleInteractionMode.none,
+    emitOnDrag: 3,
+  );
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -59,8 +81,11 @@ class ParticleInteraction {
           mode == other.mode &&
           radius == other.radius &&
           strength == other.strength &&
-          tapBurstCount == other.tapBurstCount;
+          tapBurstCount == other.tapBurstCount &&
+          popOnTap == other.popOnTap &&
+          emitOnDrag == other.emitOnDrag;
 
   @override
-  int get hashCode => Object.hash(mode, radius, strength, tapBurstCount);
+  int get hashCode =>
+      Object.hash(mode, radius, strength, tapBurstCount, popOnTap, emitOnDrag);
 }

@@ -1,6 +1,6 @@
 /// The visual shape of each particle.
 enum ParticleType {
-  /// Simple circular particles - great for snow, bubbles, or dots
+  /// Simple circular particles - great for dots, bubbles, or distant snow
   circle,
 
   /// Square/rectangular particles - good for confetti or geometric effects
@@ -17,6 +17,27 @@ enum ParticleType {
 
   /// Thin streaks aligned with the direction of motion - ideal for rain
   streak,
+
+  /// Six-armed snowflakes
+  snowflake,
+
+  /// Four-pointed sparkles - great for magic and twinkling stars
+  sparkle,
+
+  /// Flower petals - lovely for cherry blossoms and weddings
+  petal,
+
+  /// Teardrop-shaped raindrops
+  raindrop,
+
+  /// Hollow rings - good for bubbles
+  ring,
+
+  /// Triangles
+  triangle,
+
+  /// Diamonds
+  diamond,
 
   /// A custom shape given by [ParticleConfig.customPath]
   path,

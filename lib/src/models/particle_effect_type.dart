@@ -36,7 +36,19 @@ enum ParticleEffectType {
   fireflies,
 
   /// [ParticleConfig.starfield]
-  starfield;
+  starfield,
+
+  /// [ParticleConfig.fireworks]
+  fireworks,
+
+  /// [ParticleConfig.sakura]
+  sakura,
+
+  /// [ParticleConfig.network]
+  network,
+
+  /// [ParticleConfig.blizzard]
+  blizzard;
 
   /// The preset configuration for this effect.
   ParticleConfig get config => switch (this) {
@@ -50,5 +62,9 @@ enum ParticleEffectType {
     fallingLeaves => ParticleConfig.fallingLeaves,
     fireflies => ParticleConfig.fireflies,
     starfield => ParticleConfig.starfield,
+    fireworks => ParticleConfig.fireworks,
+    sakura => ParticleConfig.sakura,
+    network => ParticleConfig.network,
+    blizzard => ParticleConfig.blizzard,
   };
 }

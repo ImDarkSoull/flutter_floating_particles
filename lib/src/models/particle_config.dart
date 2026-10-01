@@ -1,8 +1,13 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'direction.dart';
+import 'json_utils.dart';
+import 'particle_behaviors.dart';
 import 'particle_coverage.dart';
+import 'particle_emitter.dart';
 import 'particle_type.dart';
 
 /// Configuration class that defines how particle effects should behave and appear.
@@ -139,6 +144,43 @@ class ParticleConfig {
   /// suits fire, sparks and fireflies.
   final BlendMode blendMode;
 
+  /// Several particle types to mix in one effect; each particle picks one at
+  /// random. Overrides [particleType] when set.
+  final List<ParticleType>? particleTypes;
+
+  /// Several images to mix for [ParticleType.image]; each particle picks one
+  /// at random. Overrides [image] and [imagePath] when set.
+  final List<ImageProvider>? images;
+
+  /// How particles change size, opacity and color over their life.
+  final ParticleLifecycle? lifecycle;
+
+  /// A fading tail behind each particle.
+  final ParticleTrail? trail;
+
+  /// Droplets that splash up where particles reach the end of their path.
+  final ParticleSplash? splash;
+
+  /// Lines between nearby particles.
+  final ParticleConnections? connections;
+
+  /// Sources that continuously spawn extra particles (fountains, smoke,
+  /// fireworks). They run alongside the [particleCount] particles.
+  final List<ParticleEmitter>? emitters;
+
+  /// Strength (0.0 to 1.0) of the depth effect: smaller particles are
+  /// treated as farther away, so they move slower, look fainter and shift
+  /// less with [parallaxFactor].
+  final double depthEffect;
+
+  /// How much particles shift with `ParticleEffects.parallax` (1.0 = as
+  /// much as the parallax offset, 0.0 = not at all).
+  final double parallaxFactor;
+
+  /// Upper limit on the number of particles drawn at once, including bursts
+  /// and emitted particles. Null allows up to 5000 extra particles.
+  final int? maxParticles;
+
   /// Creates a particle configuration.
   const ParticleConfig({
     this.particleType = ParticleType.circle,
@@ -170,6 +212,16 @@ class ParticleConfig {
     this.driftAmplitude,
     this.edgeFade = 0.0,
     this.blendMode = BlendMode.srcOver,
+    this.particleTypes,
+    this.images,
+    this.lifecycle,
+    this.trail,
+    this.splash,
+    this.connections,
+    this.emitters,
+    this.depthEffect = 0.0,
+    this.parallaxFactor = 0.5,
+    this.maxParticles,
   }) : assert(particleCount >= 0),
        assert(minSize > 0),
        assert(maxSize >= minSize),
@@ -178,20 +230,25 @@ class ParticleConfig {
        assert(minOpacity <= maxOpacity),
        assert(glowRadius >= 0),
        assert(blurSigma >= 0),
-       assert(edgeFade >= 0 && edgeFade <= 0.5);
+       assert(edgeFade >= 0 && edgeFade <= 0.5),
+       assert(depthEffect >= 0 && depthEffect <= 1),
+       assert(maxParticles == null || maxParticles >= 0);
 
   // Predefined configurations for common effects
 
-  /// Snow falling from top to bottom with white circular particles
+  /// Snowflakes drifting down from top to bottom, slowly spinning
   static const ParticleConfig snow = ParticleConfig(
-    particleType: ParticleType.circle,
+    particleType: ParticleType.snowflake,
     direction: ParticleDirection.topToBottom,
     particleCount: 100,
-    minSize: 2.0,
-    maxSize: 8.0,
+    // Large enough for the snowflake's arms to show
+    minSize: 4.0,
+    maxSize: 12.0,
     particleColor: Colors.white,
     enableGlow: true,
-    glowRadius: 3.0,
+    glowRadius: 1.5,
+    enableRotation: true,
+    rotationSpeed: 0.3,
     velocityMultiplier: 0.5,
     animationDuration: Duration(seconds: 15),
     minOpacity: 0.6,
@@ -367,6 +424,72 @@ class ParticleConfig {
     enableOpacityAnimation: false,
   );
 
+  /// Fireworks launched from the bottom edge, exploding into glowing sparks
+  /// with trails. Use `ParticleController.fireworks` for more on demand.
+  static const ParticleConfig fireworks = ParticleConfig(
+    particleCount: 0,
+    minSize: 2.0,
+    maxSize: 4.0,
+    gradientColors: [
+      Color(0xFFFF5252),
+      Color(0xFFFFD740),
+      Color(0xFF69F0AE),
+      Color(0xFF40C4FF),
+      Color(0xFFE040FB),
+    ],
+    enableGlow: true,
+    glowRadius: 3.0,
+    enableOpacityAnimation: false,
+    blendMode: BlendMode.plus,
+    lifecycle: ParticleLifecycle(endScale: 0.4),
+    emitters: [ParticleEmitter.fireworksShow],
+  );
+
+  /// Cherry blossom petals drifting down in the wind
+  static const ParticleConfig sakura = ParticleConfig(
+    particleType: ParticleType.petal,
+    particleCount: 40,
+    minSize: 8.0,
+    maxSize: 16.0,
+    gradientColors: [Color(0xFFFFC1D6), Color(0xFFFFA3C4), Color(0xFFFFE4EE)],
+    enableRotation: true,
+    velocityMultiplier: 0.5,
+    animationDuration: Duration(seconds: 14),
+    minOpacity: 0.7,
+    wind: 0.35,
+    depthEffect: 0.6,
+  );
+
+  /// Drifting dots connected by lines, like a network or constellation.
+  /// Particles connect to the pointer too when an interaction is set.
+  static const ParticleConfig network = ParticleConfig(
+    direction: ParticleDirection.none,
+    particleCount: 60,
+    minSize: 2.0,
+    maxSize: 4.0,
+    particleColor: Color(0xFFB3E5FC),
+    velocityMultiplier: 0.4,
+    driftAmplitude: 40,
+    enableOpacityAnimation: false,
+    connections: ParticleConnections(maxDistance: 110),
+  );
+
+  /// A heavy snowfall of snowflakes with depth
+  static const ParticleConfig blizzard = ParticleConfig(
+    particleTypes: [ParticleType.snowflake, ParticleType.circle],
+    particleCount: 160,
+    minSize: 3.0,
+    maxSize: 14.0,
+    particleColor: Colors.white,
+    enableRotation: true,
+    rotationSpeed: 0.3,
+    velocityMultiplier: 0.9,
+    animationDuration: Duration(seconds: 9),
+    minOpacity: 0.5,
+    wind: 0.25,
+    depthEffect: 0.8,
+  );
+
   /// Returns a copy of this configuration with the given fields replaced.
   ///
   /// Nullable fields cannot be reset to null this way; create a new
@@ -401,6 +524,16 @@ class ParticleConfig {
     double? driftAmplitude,
     double? edgeFade,
     BlendMode? blendMode,
+    List<ParticleType>? particleTypes,
+    List<ImageProvider>? images,
+    ParticleLifecycle? lifecycle,
+    ParticleTrail? trail,
+    ParticleSplash? splash,
+    ParticleConnections? connections,
+    List<ParticleEmitter>? emitters,
+    double? depthEffect,
+    double? parallaxFactor,
+    int? maxParticles,
   }) {
     return ParticleConfig(
       particleType: particleType ?? this.particleType,
@@ -433,6 +566,164 @@ class ParticleConfig {
       driftAmplitude: driftAmplitude ?? this.driftAmplitude,
       edgeFade: edgeFade ?? this.edgeFade,
       blendMode: blendMode ?? this.blendMode,
+      particleTypes: particleTypes ?? this.particleTypes,
+      images: images ?? this.images,
+      lifecycle: lifecycle ?? this.lifecycle,
+      trail: trail ?? this.trail,
+      splash: splash ?? this.splash,
+      connections: connections ?? this.connections,
+      emitters: emitters ?? this.emitters,
+      depthEffect: depthEffect ?? this.depthEffect,
+      parallaxFactor: parallaxFactor ?? this.parallaxFactor,
+      maxParticles: maxParticles ?? this.maxParticles,
+    );
+  }
+
+  /// Converts this configuration to JSON, e.g. to store effects on a server.
+  ///
+  /// [customParticle], [customPath] and image providers other than
+  /// [AssetImage] and [NetworkImage] cannot be serialized and are left out,
+  /// as are emitters' `followKey`s.
+  Map<String, Object?> toJson() => {
+    'particleType': particleType.name,
+    'direction': direction.name,
+    'particleCoverage': particleCoverage.name,
+    'particleCount': particleCount,
+    'minSize': minSize,
+    'maxSize': maxSize,
+    'animationDurationMs': animationDuration.inMilliseconds,
+    if (particleColor != null) 'particleColor': colorToJson(particleColor!),
+    if (imagePath != null) 'imagePath': imagePath,
+    if (imageToJson(image) != null) 'image': imageToJson(image),
+    'minOpacity': minOpacity,
+    'maxOpacity': maxOpacity,
+    'enableGlow': enableGlow,
+    'glowRadius': glowRadius,
+    'enableRotation': enableRotation,
+    'rotationSpeed': rotationSpeed,
+    'velocityMultiplier': velocityMultiplier,
+    'enableSizeVariation': enableSizeVariation,
+    'enableOpacityAnimation': enableOpacityAnimation,
+    if (gradientColors != null)
+      'gradientColors': gradientColors!.map(colorToJson).toList(),
+    'enableBlur': enableBlur,
+    'blurSigma': blurSigma,
+    if (seed != null) 'seed': seed,
+    'wind': wind,
+    if (driftAmplitude != null) 'driftAmplitude': driftAmplitude,
+    'edgeFade': edgeFade,
+    'blendMode': blendMode.name,
+    if (particleTypes != null)
+      'particleTypes': particleTypes!.map((t) => t.name).toList(),
+    if (images != null)
+      'images': [
+        for (final image in images!)
+          if (imageToJson(image) != null) imageToJson(image),
+      ],
+    if (lifecycle != null) 'lifecycle': lifecycle!.toJson(),
+    if (trail != null) 'trail': trail!.toJson(),
+    if (splash != null) 'splash': splash!.toJson(),
+    if (connections != null) 'connections': connections!.toJson(),
+    if (emitters != null)
+      'emitters': emitters!.map((emitter) => emitter.toJson()).toList(),
+    'depthEffect': depthEffect,
+    'parallaxFactor': parallaxFactor,
+    if (maxParticles != null) 'maxParticles': maxParticles,
+  };
+
+  /// Creates a configuration from [toJson] output, such as JSON a user
+  /// pasted or a server sent. Missing fields and values of the wrong type
+  /// use their defaults, and out-of-range values are clamped, so any
+  /// decoded JSON object gives a valid configuration.
+  factory ParticleConfig.fromJson(Map<String, Object?> json) {
+    Map<String, Object?>? map(Object? value) =>
+        value is Map ? value.cast<String, Object?>() : null;
+    List<Object?>? list(Object? value) => value is List ? value : null;
+    const defaults = ParticleConfig();
+    final minSize = readPositive(json['minSize']) ?? defaults.minSize;
+    final maxOpacity =
+        readDoubleIn(json['maxOpacity'], 0, 1) ?? defaults.maxOpacity;
+
+    return ParticleConfig(
+      particleType: readEnum(
+        ParticleType.values,
+        json['particleType'],
+        defaults.particleType,
+      ),
+      direction: readEnum(
+        ParticleDirection.values,
+        json['direction'],
+        defaults.direction,
+      ),
+      particleCoverage: readEnum(
+        ParticleCoverage.values,
+        json['particleCoverage'],
+        defaults.particleCoverage,
+      ),
+      particleCount: readCount(json['particleCount']) ?? defaults.particleCount,
+      minSize: minSize,
+      maxSize: max(minSize, readDouble(json['maxSize']) ?? defaults.maxSize),
+      animationDuration:
+          readMs(json['animationDurationMs'], 1) ?? defaults.animationDuration,
+      particleColor: readColor(json['particleColor']),
+      imagePath: readString(json['imagePath']),
+      image: readImage(json['image']),
+      minOpacity: min(
+        maxOpacity,
+        readDoubleIn(json['minOpacity'], 0, 1) ?? defaults.minOpacity,
+      ),
+      maxOpacity: maxOpacity,
+      enableGlow: readBool(json['enableGlow']) ?? defaults.enableGlow,
+      glowRadius: readDoubleIn(json['glowRadius'], 0) ?? defaults.glowRadius,
+      enableRotation:
+          readBool(json['enableRotation']) ?? defaults.enableRotation,
+      rotationSpeed:
+          readDouble(json['rotationSpeed']) ?? defaults.rotationSpeed,
+      velocityMultiplier:
+          readDouble(json['velocityMultiplier']) ?? defaults.velocityMultiplier,
+      enableSizeVariation:
+          readBool(json['enableSizeVariation']) ?? defaults.enableSizeVariation,
+      enableOpacityAnimation:
+          readBool(json['enableOpacityAnimation']) ??
+          defaults.enableOpacityAnimation,
+      gradientColors: readColors(json['gradientColors']),
+      enableBlur: readBool(json['enableBlur']) ?? defaults.enableBlur,
+      blurSigma: readDoubleIn(json['blurSigma'], 0) ?? defaults.blurSigma,
+      seed: readInt(json['seed']),
+      wind: readDouble(json['wind']) ?? defaults.wind,
+      driftAmplitude: readDouble(json['driftAmplitude']),
+      edgeFade: readDoubleIn(json['edgeFade'], 0, 0.5) ?? defaults.edgeFade,
+      blendMode: readEnum(
+        BlendMode.values,
+        json['blendMode'],
+        defaults.blendMode,
+      ),
+      particleTypes: list(json['particleTypes'])
+          ?.map(
+            (name) => readEnum(ParticleType.values, name, ParticleType.circle),
+          )
+          .toList(),
+      images: list(json['images'])?.map(readImage).nonNulls.toList(),
+      lifecycle: map(json['lifecycle']) == null
+          ? null
+          : ParticleLifecycle.fromJson(map(json['lifecycle'])!),
+      trail: map(json['trail']) == null
+          ? null
+          : ParticleTrail.fromJson(map(json['trail'])!),
+      splash: map(json['splash']) == null
+          ? null
+          : ParticleSplash.fromJson(map(json['splash'])!),
+      connections: map(json['connections']) == null
+          ? null
+          : ParticleConnections.fromJson(map(json['connections'])!),
+      emitters: list(
+        json['emitters'],
+      )?.map(map).nonNulls.map(ParticleEmitter.fromJson).toList(),
+      depthEffect:
+          readDoubleIn(json['depthEffect'], 0, 1) ?? defaults.depthEffect,
+      parallaxFactor:
+          readDouble(json['parallaxFactor']) ?? defaults.parallaxFactor,
+      maxParticles: readCount(json['maxParticles']),
     );
   }
 
@@ -469,7 +760,17 @@ class ParticleConfig {
           wind == other.wind &&
           driftAmplitude == other.driftAmplitude &&
           edgeFade == other.edgeFade &&
-          blendMode == other.blendMode;
+          blendMode == other.blendMode &&
+          listEquals(particleTypes, other.particleTypes) &&
+          listEquals(images, other.images) &&
+          lifecycle == other.lifecycle &&
+          trail == other.trail &&
+          splash == other.splash &&
+          connections == other.connections &&
+          listEquals(emitters, other.emitters) &&
+          depthEffect == other.depthEffect &&
+          parallaxFactor == other.parallaxFactor &&
+          maxParticles == other.maxParticles;
 
   @override
   int get hashCode => Object.hashAll([
@@ -502,5 +803,15 @@ class ParticleConfig {
     driftAmplitude,
     edgeFade,
     blendMode,
+    particleTypes == null ? null : Object.hashAll(particleTypes!),
+    images == null ? null : Object.hashAll(images!),
+    lifecycle,
+    trail,
+    splash,
+    connections,
+    emitters == null ? null : Object.hashAll(emitters!),
+    depthEffect,
+    parallaxFactor,
+    maxParticles,
   ]);
 }

@@ -1,0 +1,6 @@
+tags:
+  # Golden images were generated on macOS; other platforms can render
+  # anti-aliasing slightly differently. Regenerate them with
+  # `flutter test --update-goldens --tags golden`, or skip them with
+  # `flutter test --exclude-tags golden`.
+  golden:

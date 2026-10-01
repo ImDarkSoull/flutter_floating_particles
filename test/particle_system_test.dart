@@ -69,14 +69,13 @@ void main() {
 
     setUp(() {
       system = ParticleSystem(config: const ParticleConfig(particleCount: 0))
-        ..sprite = ParticleSprite.fromPath(
-          ParticleShapes.circle,
-          resolution: 16,
-        );
+        ..atlas = ParticleAtlas.pack([
+          ParticleSprite.fromPath(ParticleShapes.circle, resolution: 16),
+        ], ParticleSprite.fromPath(ParticleShapes.circle, resolution: 16));
     });
 
     tearDown(() {
-      system.sprite?.dispose();
+      system.atlas?.dispose();
       system.dispose();
     });
 

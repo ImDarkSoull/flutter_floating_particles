@@ -33,6 +33,67 @@ abstract final class ParticleShapes {
       ),
     );
 
+  /// A six-armed snowflake with branches.
+  static final Path snowflake = normalize(_snowflake());
+
+  /// A four-pointed sparkle with curved sides.
+  static final Path sparkle = normalize(
+    Path()
+      ..moveTo(0, -1)
+      ..quadraticBezierTo(0.12, -0.12, 1, 0)
+      ..quadraticBezierTo(0.12, 0.12, 0, 1)
+      ..quadraticBezierTo(-0.12, 0.12, -1, 0)
+      ..quadraticBezierTo(-0.12, -0.12, 0, -1)
+      ..close(),
+  );
+
+  /// A flower petal with a notch at the tip.
+  static final Path petal = normalize(
+    Path()
+      ..moveTo(0, 1)
+      ..cubicTo(-0.75, 0.55, -0.6, -0.6, -0.16, -1)
+      ..lineTo(0, -0.82)
+      ..lineTo(0.16, -1)
+      ..cubicTo(0.6, -0.6, 0.75, 0.55, 0, 1)
+      ..close(),
+  );
+
+  /// A teardrop, pointed at the top.
+  static final Path raindrop = normalize(
+    Path()
+      ..moveTo(0, -1)
+      ..cubicTo(0.2, -0.5, 0.6, -0.1, 0.6, 0.3)
+      ..cubicTo(0.6, 0.65, 0.3, 0.9, 0, 0.9)
+      ..cubicTo(-0.3, 0.9, -0.6, 0.65, -0.6, 0.3)
+      ..cubicTo(-0.6, -0.1, -0.2, -0.5, 0, -1)
+      ..close(),
+  );
+
+  /// A hollow ring.
+  static final Path ring = Path()
+    ..fillType = PathFillType.evenOdd
+    ..addOval(Rect.fromCircle(center: Offset.zero, radius: 0.5))
+    ..addOval(Rect.fromCircle(center: Offset.zero, radius: 0.36));
+
+  /// An upward-pointing triangle.
+  static final Path triangle = normalize(
+    Path()
+      ..moveTo(0, -1)
+      ..lineTo(0.866, 0.5)
+      ..lineTo(-0.866, 0.5)
+      ..close(),
+  );
+
+  /// A diamond.
+  static final Path diamond = normalize(
+    Path()
+      ..moveTo(0, -1)
+      ..lineTo(0.62, 0)
+      ..lineTo(0, 1)
+      ..lineTo(-0.62, 0)
+      ..close(),
+  );
+
   /// The normalized path for a built-in [type], or null for types that are
   /// not drawn from a built-in shape.
   static Path? forType(ParticleType type) => switch (type) {
@@ -42,6 +103,13 @@ abstract final class ParticleShapes {
     ParticleType.heart => heart,
     ParticleType.leaf => leaf,
     ParticleType.streak => streak,
+    ParticleType.snowflake => snowflake,
+    ParticleType.sparkle => sparkle,
+    ParticleType.petal => petal,
+    ParticleType.raindrop => raindrop,
+    ParticleType.ring => ring,
+    ParticleType.triangle => triangle,
+    ParticleType.diamond => diamond,
     ParticleType.path || ParticleType.image || ParticleType.custom => null,
   };
 
@@ -87,6 +155,37 @@ abstract final class ParticleShapes {
       ..cubicTo(1.0, 0.4, 1.0, 0.15, 0.75, 0.15)
       ..cubicTo(0.6, 0.15, 0.5, 0.27, 0.5, 0.3)
       ..close();
+  }
+
+  static Path _snowflake() {
+    final path = Path();
+    // Every bar is added with the same winding, so overlaps stay filled
+    void bar(Offset from, Offset to, double halfWidth) {
+      final direction = to - from;
+      final length = direction.distance;
+      final normal = Offset(-direction.dy, direction.dx) / length * halfWidth;
+      path
+        ..moveTo(from.dx + normal.dx, from.dy + normal.dy)
+        ..lineTo(to.dx + normal.dx, to.dy + normal.dy)
+        ..lineTo(to.dx - normal.dx, to.dy - normal.dy)
+        ..lineTo(from.dx - normal.dx, from.dy - normal.dy)
+        ..close();
+    }
+
+    Offset polar(double radius, double angle) =>
+        Offset(radius * cos(angle), radius * sin(angle));
+
+    for (int i = 0; i < 6; i++) {
+      final angle = i * pi / 3 - pi / 2;
+      bar(Offset.zero, polar(1, angle), 0.07);
+      for (final at in const [0.45, 0.72]) {
+        final base = polar(at, angle);
+        final length = at == 0.45 ? 0.32 : 0.22;
+        bar(base, base + polar(length, angle - pi / 4), 0.055);
+        bar(base, base + polar(length, angle + pi / 4), 0.055);
+      }
+    }
+    return path;
   }
 
   static Path _leaf() {
